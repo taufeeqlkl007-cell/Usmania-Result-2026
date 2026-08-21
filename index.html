@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Result Portal - Usmania Public High School</title>
+<style>
+  * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+  body { background-color: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+  .container { background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 100%; max-width: 600px; text-align: center; }
+  h2 { color: #1a365d; margin-bottom: 5px; text-transform: uppercase; font-size: 22px; }
+  h4 { color: #742a2a; margin-top: 0; margin-bottom: 25px; font-weight: 600; }
+  .search-box { display: flex; gap: 10px; margin-bottom: 25px; }
+  input[type="number"] { flex: 1; padding: 12px; border: 2px solid #cbd5e0; border-radius: 6px; font-size: 16px; outline: none; }
+  input[type="number"]:focus { border-color: #1a365d; }
+  button { background-color: #1a365d; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; }
+  button:hover { background-color: #2b6cb0; }
+  .result-card { display: none; border: 2px solid #1a365d; border-radius: 8px; padding: 20px; text-align: left; background: #fff; }
+  .info-row { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 15px; background: #edf2f7; padding: 10px; border-radius: 4px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+  th, td { border: 1px solid #e2e8f0; padding: 8px; text-align: center; font-size: 14px; }
+  th { background-color: #1a365d; color: white; }
+  .summary { display: flex; justify-content: space-between; font-weight: bold; font-size: 15px; background: #f7fafc; padding: 10px; border: 1px solid #e2e8f0; }
+  .pass { color: green; }
+  .fail { color: red; }
+  .error { color: red; font-weight: bold; margin-top: 15px; display: none; }
+  .print-btn { margin-top: 15px; width: 100%; background-color: #28a745; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Usmania Public High School</h2>
+  <h4>Class 8th Annual Result Portal 2026</h4>
+
+  <div class="search-box">
+    <input type="number" id="rollInput" placeholder="Enter Roll Number (1 - 50)">
+    <button onclick="searchResult()">Check Result</button>
+  </div>
+
+  <div id="errorMessage" class="error">Invalid Roll Number! Please enter Roll No between 1 and 50.</div>
+
+  <div id="resultCard" class="result-card">
+    <div class="info-row">
+      <span>Roll No: <span id="resRoll"></span></span>
+      <span>Name: <span id="resName"></span></span>
+      <span>Pos: <span id="resPos"></span></span>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>Subject</th><th>Total</th><th>Obtained</th></tr>
+      </thead>
+      <tbody id="marksBody"></tbody>
+    </table>
+
+    <div class="summary">
+      <span>Total: <span id="resTot"></span>/500</span>
+      <span>%: <span id="resPct"></span></span>
+      <span>Grade: <span id="resGrd"></span></span>
+      <span>Status: <span id="resSts"></span></span>
+    </div>
+
+    <button class="print-btn" onclick="window.print()">Print DMC</button>
+  </div>
+</div>
+
+<script>
+const studentsData = [
+  {roll:1, name:"Ali", eng:23, urd:40, mat:5, isl:17, che:27, bio:21, phy:40, tot:173, pct:"34.6%", grd:"D", sts:"Pass", pos:"35th"},
+  {roll:2, name:"Adil", eng:69, urd:69, mat:44, isl:46, che:62, bio:74, phy:69, tot:433, pct:"86.6%", grd:"A+", sts:"Pass", pos:"2nd"},
+  {roll:3, name:"Afnan-1", eng:0, urd:0, mat:0, isl:0, che:6, bio:6, phy:0, tot:12, pct:"2.4%", grd:"F", sts:"Fail", pos:"48th"},
+  {roll:4, name:"Afnan-2", eng:20, urd:27, mat:9, isl:17, che:31, bio:34, phy:35, tot:173, pct:"34.6%", grd:"D", sts:"Pass", pos:"35th"},
+  {roll:5, name:"Ali-2", eng:20, urd:35, mat:25, isl:0, che:36, bio:29, phy:38, tot:183, pct:"36.6%", grd:"D", sts:"Pass", pos:"32nd"},
+  {roll:6, name:"Ali-Zar", eng:38, urd:31, mat:25, isl:17, che:40, bio:35, phy:27, tot:213, pct:"42.6%", grd:"D", sts:"Pass", pos:"20th"},
+  {roll:7, name:"Abdul-Mutalib", eng:30, urd:25, mat:25, isl:17, che:31, bio:23, phy:30, tot:181, pct:"36.2%", grd:"D", sts:"Pass", pos:"33rd"},
+  {roll:8, name:"Abu Zar", eng:36, urd:39, mat:25, isl:25, che:40, bio:34, phy:31, tot:230, pct:"46.0%", grd:"D", sts:"Pass", pos:"16th"},
+  {roll:9, name:"Abuhuraira", eng:41, urd:33, mat:25, isl:24, che:33, bio:33, phy:38, tot:227, pct:"45.4%", grd:"D", sts:"Pass", pos:"17th"},
+  {roll:10, name:"Abdul Rahman", eng:68, urd:63, mat:40, isl:45, che:65, bio:67, phy:70, tot:418, pct:"83.6%", grd:"A+", sts:"Pass", pos:"4th"},
+  {roll:11, name:"Asad Ullah", eng:40, urd:45, mat:20, isl:35, che:31, bio:37, phy:53, tot:261, pct:"52.2%", grd:"C", sts:"Pass", pos:"12th"},
+  {roll:12, name:"Aman", eng:19, urd:26, mat:25, isl:17, che:28, bio:18, phy:40, tot:173, pct:"34.6%", grd:"D", sts:"Pass", pos:"35th"},
+  {roll:13, name:"Ali Ahmad", eng:56, urd:50, mat:25, isl:31, che:37, bio:32, phy:55, tot:286, pct:"57.2%", grd:"C", sts:"Pass", pos:"9th"},
+  {roll:14, name:"Ayman", eng:35, urd:54, mat:25, isl:22, che:38, bio:50, phy:56, tot:280, pct:"56.0%", grd:"C", sts:"Pass", pos:"10th"},
+  {roll:15, name:"Arsalan", eng:0, urd:0, mat:0, isl:0, che:0, bio:0, phy:0, tot:0, pct:"0.0%", grd:"F", sts:"Fail", pos:"49th"},
+  {roll:16, name:"Bilal", eng:64, urd:64, mat:25, isl:37, che:35, bio:57, phy:58, tot:340, pct:"68.0%", grd:"B", sts:"Pass", pos:"6th"},
+  {roll:17, name:"Basharat", eng:28, urd:36, mat:25, isl:17, che:28, bio:30, phy:39, tot:203, pct:"40.6%", grd:"D", sts:"Pass", pos:"22nd"},
+  {roll:18, name:"Daniyal", eng:28, urd:40, mat:25, isl:17, che:28, bio:29, phy:42, tot:209, pct:"41.8%", grd:"D", sts:"Pass", pos:"21st"},
+  {roll:19, name:"Fawad-1", eng:28, urd:41, mat:25, isl:22, che:32, bio:21, phy:29, tot:198, pct:"39.6%", grd:"D", sts:"Pass", pos:"26th"},
+  {roll:20, name:"Fawad-2", eng:36, urd:61, mat:25, isl:30, che:36, bio:26, phy:31, tot:245, pct:"49.0%", grd:"D", sts:"Pass", pos:"14th"},
+  {roll:21, name:"Hamas", eng:42, urd:38, mat:25, isl:28, che:43, bio:37, phy:60, tot:273, pct:"54.6%", grd:"C", sts:"Pass", pos:"11th"},
+  {roll:22, name:"Hasnain", eng:37, urd:28, mat:7, isl:19, che:34, bio:21, phy:41, tot:187, pct:"37.4%", grd:"D", sts:"Pass", pos:"29th"},
+  {roll:23, name:"Haider", eng:0, urd:29, mat:16, isl:17, che:0, bio:15, phy:35, tot:112, pct:"22.4%", grd:"F", sts:"Fail", pos:"45th"},
+  {roll:24, name:"Irfan", eng:25, urd:38, mat:25, isl:17, che:36, bio:43, phy:53, tot:237, pct:"47.4%", grd:"D", sts:"Pass", pos:"15th"},
+  {roll:25, name:"Khalid", eng:55, urd:51, mat:25, isl:27, che:37, bio:42, phy:65, tot:302, pct:"60.4%", grd:"B", sts:"Pass", pos:"8th"},
+  {roll:26, name:"Muhammad-1", eng:58, urd:65, mat:25, isl:37, che:45, bio:55, phy:59, tot:344, pct:"68.8%", grd:"B", sts:"Pass", pos:"5th"},
+  {roll:27, name:"Muhammad-2", eng:24, urd:27, mat:6, isl:17, che:29, bio:21, phy:41, tot:165, pct:"33.0%", grd:"D", sts:"Pass", pos:"41st"},
+  {roll:28, name:"M. Nabi", eng:42, urd:48, mat:25, isl:19, che:31, bio:34, phy:0, tot:199, pct:"39.8%", grd:"D", sts:"Pass", pos:"25th"},
+  {roll:29, name:"Muhaid", eng:25, urd:34, mat:25, isl:17, che:30, bio:18, phy:30, tot:179, pct:"35.8%", grd:"D", sts:"Pass", pos:"34th"},
+  {roll:30, name:"Mehran", eng:71, urd:65, mat:39, isl:48, che:60, bio:73, phy:72, tot:428, pct:"85.6%", grd:"A+", sts:"Pass", pos:"3rd"},
+  {roll:31, name:"Muzamil", eng:21, urd:30, mat:25, isl:20, che:30, bio:27, phy:32, tot:185, pct:"37.0%", grd:"D", sts:"Pass", pos:"31st"},
+  {roll:32, name:"Mashal", eng:28, urd:38, mat:25, isl:17, che:29, bio:18, phy:33, tot:188, pct:"37.6%", grd:"D", sts:"Pass", pos:"28th"},
+  {roll:33, name:"Muhsin", eng:20, urd:27, mat:25, isl:17, che:27, bio:15, phy:40, tot:171, pct:"34.2%", grd:"D", sts:"Pass", pos:"39th"},
+  {roll:34, name:"Nihal", eng:32, urd:28, mat:25, isl:17, che:32, bio:28, phy:38, tot:200, pct:"40.0%", grd:"D", sts:"Pass", pos:"23rd"},
+  {roll:35, name:"Qasim", eng:23, urd:32, mat:25, isl:17, che:29, bio:35, phy:32, tot:193, pct:"38.6%", grd:"D", sts:"Pass", pos:"27th"},
+  {roll:36, name:"Qais", eng:20, urd:29, mat:25, isl:17, che:28, bio:17, phy:37, tot:173, pct:"34.6%", grd:"D", sts:"Pass", pos:"35th"},
+  {roll:37, name:"Rohail", eng:45, urd:50, mat:25, isl:17, che:31, bio:28, phy:31, tot:227, pct:"45.4%", grd:"D", sts:"Pass", pos:"17th"},
+  {roll:38, name:"Sudais", eng:26, urd:26, mat:4, isl:18, che:31, bio:25, phy:35, tot:165, pct:"33.0%", grd:"D", sts:"Pass", pos:"41st"},
+  {roll:39, name:"Shakir", eng:40, urd:44, mat:25, isl:32, che:33, bio:46, phy:40, tot:260, pct:"52.0%", grd:"C", sts:"Pass", pos:"13th"},
+  {roll:40, name:"Sahil", eng:31, urd:28, mat:25, isl:17, che:29, bio:20, phy:36, tot:186, pct:"37.2%", grd:"D", sts:"Pass", pos:"30th"},
+  {roll:41, name:"Said-Rahman", eng:0, urd:0, mat:0, isl:0, che:0, bio:0, phy:0, tot:0, pct:"0.0%", grd:"F", sts:"Fail", pos:"49th"},
+  {roll:42, name:"Shah-Zaib", eng:0, urd:25, mat:11, isl:25, che:0, bio:35, phy:15, tot:111, pct:"22.2%", grd:"F", sts:"Fail", pos:"46th"},
+  {roll:43, name:"Usman", eng:67, urd:71, mat:45, isl:48, che:73, bio:73, phy:70, tot:449, pct:"89.8%", grd:"A+", sts:"Pass", pos:"1st"},
+  {roll:44, name:"Ubaid", eng:42, urd:25, mat:21, isl:25, che:10, bio:29, phy:18, tot:170, pct:"34.0%", grd:"D", sts:"Pass", pos:"40th"},
+  {roll:45, name:"Waleed", eng:0, urd:0, mat:0, isl:8, che:16, bio:0, phy:40, tot:64, pct:"12.8%", grd:"F", sts:"Fail", pos:"47th"},
+  {roll:46, name:"Warisha", eng:55, urd:25, mat:20, isl:33, che:32, bio:30, phy:31, tot:226, pct:"45.2%", grd:"D", sts:"Pass", pos:"19th"},
+  {roll:47, name:"Yaseen", eng:16, urd:2, mat:5, isl:18, che:4, bio:29, phy:56, tot:130, pct:"26.0%", grd:"F", sts:"Fail", pos:"44th"},
+  {roll:48, name:"Yamman", eng:40, urd:25, mat:20, isl:31, che:32, bio:36, phy:16, tot:200, pct:"40.0%", grd:"D", sts:"Pass", pos:"23rd"},
+  {roll:49, name:"Zuhaib", eng:65, urd:25, mat:45, isl:51, che:61, bio:58, phy:20, tot:325, pct:"65.0%", grd:"B", sts:"Pass", pos:"7th"},
+  {roll:50, name:"Zarar", eng:20, urd:18, mat:25, isl:17, che:24, bio:20, phy:41, tot:165, pct:"33.0%", grd:"D", sts:"Pass", pos:"41st"}
+];
+
+function searchResult() {
+  const roll = parseInt(document.getElementById('rollInput').value);
+  const student = studentsData.find(s => s.roll === roll);
+  const card = document.getElementById('resultCard');
+  const err = document.getElementById('errorMessage');
+
+  if (student) {
+    err.style.display = 'none';
+    card.style.display = 'block';
+
+    document.getElementById('resRoll').innerText = student.roll;
+    document.getElementById('resName').innerText = student.name;
+    document.getElementById('resPos').innerText = student.pos;
+    document.getElementById('resTot').innerText = student.tot;
+    document.getElementById('resPct').innerText = student.pct;
+    document.getElementById('resGrd').innerText = student.grd;
+    
+    const stsElem = document.getElementById('resSts');
+    stsElem.innerText = student.sts;
+    stsElem.className = student.sts === 'Pass' ? 'pass' : 'fail';
+
+    const tbody = document.getElementById('marksBody');
+    tbody.innerHTML = `
+      <tr><td>English</td><td>75</td><td>${student.eng}</td></tr>
+      <tr><td>Urdu</td><td>75</td><td>${student.urd}</td></tr>
+      <tr><td>Maths</td><td>75</td><td>${student.mat}</td></tr>
+      <tr><td>Islamyat</td><td>50</td><td>${student.isl}</td></tr>
+      <tr><td>Chemistry</td><td>75</td><td>${student.che}</td></tr>
+      <tr><td>Biology</td><td>75</td><td>${student.bio}</td></tr>
+      <tr><td>Physics</td><td>75</td><td>${student.phy}</td></tr>
+    `;
+  } else {
+    card.style.display = 'none';
+    err.style.display = 'block';
+  }
+}
+</script>
+
+</body>
+</html>
